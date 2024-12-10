@@ -21,9 +21,48 @@
 
         />
 
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/bookCategoryLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
 
+        android:layout_marginLeft="22dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginRight="22dp"
+        android:hint="Book Category"
+        android:textColorHint="#808080"
+        android:backgroundTint="@color/purple_500"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:minHeight="48dp"
+        app:layout_constraintHorizontal_bias="0.0"
 
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolBarId"
 
+        >
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/adminBookCategoryId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!--<Spinner
+        android:id="@+id/spinnerComboBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:spinnerMode="dropdown"
+        android:minHeight="48dp"
+        app:layout_constraintHorizontal_bias="0.0"
+
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolBarId"
+        android:entries="@array/spinner_items"
+        android:prompt="@string/spinner_prompt" />-->
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/adminBookNameLayoutId"
@@ -42,7 +81,7 @@
 
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/toolBarId"
+        app:layout_constraintTop_toBottomOf="@id/bookCategoryLayout"
 
         >
 

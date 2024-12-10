@@ -55,7 +55,7 @@ public class AdminPanelBookUploadActivity extends AppCompatActivity {
     private Toolbar toolbar;
     private Bitmap bitmap;
 
-    private EditText adminBookName,adminBookDescription;
+    private EditText adminBookName,adminBookDescription,adminBookCategory;
     private Button adminBrowseImageButton,adminUploadImageButton;
     private ImageView adminBookImage;
     private String encodeImageString,encodePdfString,pdfNameExtract;
@@ -76,6 +76,7 @@ public class AdminPanelBookUploadActivity extends AppCompatActivity {
         //frameLayout = findViewById(R.id.frameLayoutContainerId);
 
 
+        adminBookCategory=findViewById(R.id.adminBookCategoryId);
         adminBookName=findViewById(R.id.adminBookNameId);
         adminBookDescription=findViewById(R.id.adminBookDescriptionId);
         adminBookImage=findViewById(R.id.adminBookImageId);
