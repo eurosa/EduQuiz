@@ -1,6 +1,7 @@
 package com.example.eduorigin.featurefragments;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.appcompat.widget.SearchView;
@@ -9,16 +10,26 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.example.eduorigin.R;
+import com.example.eduorigin.RequestHandler;
 import com.example.eduorigin.adapters.BookLibraryAdapter;
 import com.example.eduorigin.controllers.ApiController;
 import com.example.eduorigin.models.ResponseModelBookLibraryBackup;
+import com.example.eduorigin.registration.SignInActivity;
+import com.example.eduorigin.registration.SignUpActivity;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import retrofit2.Call;
@@ -31,7 +42,7 @@ public class BookLibraryFragment extends Fragment {
 
 
 
-
+    private String read_url = "https://timxn.com/ecom/EduOriginAPI/Registration/read.php";
     private RecyclerView recyclerView;
     private BookLibraryAdapter adapter;
     Context context;
@@ -45,6 +56,7 @@ public class BookLibraryFragment extends Fragment {
         recyclerView=view.findViewById(R.id.recyclerViewId);
         recyclerView.setLayoutManager(new GridLayoutManager(context,2));
         processData();
+        //dataProcess();
 
         SearchView sv;
         sv=view.findViewById(R.id.searchViewId);
@@ -86,6 +98,78 @@ public class BookLibraryFragment extends Fragment {
             }
         });
 
+    }
+
+    private void dataProcess() {
+        // Display a loader (if needed)
+        // displayLoader();
+
+        Thread sendThread = new Thread(new Runnable() {
+
+
+
+                // Process the response on the main thread
+             //   runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            // Create a RequestHandler instance
+                            RequestHandler rh = new RequestHandler();
+
+                            // Define the request parameters (if any)
+                            HashMap<String, String> param = new HashMap<>();
+                            // Example: param.put("key", "value");
+
+                            // Send the POST request and get the response
+                            String result = rh.sendPostRequest(read_url, param);
+                            Log.d("result123",result);
+                            // Create a JSONArray from the response string
+                            JSONArray jsonArray = new JSONArray(result);
+                            ResponseModelBookLibraryBackup model = new ResponseModelBookLibraryBackup();
+                            // Parse the JSON array into a list of ResponseModelBookLibraryBackup objects
+                            List<ResponseModelBookLibraryBackup> data = new ArrayList<>();
+
+                            for (int i = 0; i < jsonArray.length(); i++) {
+                                JSONObject item = jsonArray.getJSONObject(i);
+
+                                // Create a new ResponseModelBookLibraryBackup object
+
+
+                                // Populate the model object with data from the JSON object
+                                // Replace these with the actual column names from your database
+                                model.setId(item.getString("id")); // Assuming "id" is a column in your table
+                                model.setName(item.getString("name")); // Assuming "title" is a column in your table
+                                model.setDescription(item.getString("description")); // Assuming "description" is a column in your table
+                                model.setImage(item.getString("image")); // Assuming "image_url" is a column in your table
+                                model.setPdf(item.getString("pdf")); // Assuming "image_url" is a column in your table
+
+                                // Add the model to the list
+                                data.add(model);
+                            }
+
+                            // Update the RecyclerView adapter on the main thread
+                            adapter = new BookLibraryAdapter(data);
+                            recyclerView.setAdapter(adapter);
+
+                        } catch (JSONException e) {
+                            // Handle JSON parsing errors
+                            e.printStackTrace();
+                          //  Toast.makeText(context, "Error parsing response", Toast.LENGTH_SHORT).show();
+                        } catch (Exception e) {
+                            // Handle other errors
+                            e.printStackTrace();
+                          //  Toast.makeText(context, "An error occurred", Toast.LENGTH_SHORT).show();
+                        } finally {
+                            // Dismiss the loader (if used)
+                            // pDialog.dismiss();
+                        }
+                    }
+              //  });
+
+        });
+
+        // Start the thread
+        sendThread.start();
     }
 
 
