@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -12,9 +14,18 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.example.eduorigin.DashboardActivity;
 import com.example.eduorigin.R;
+import com.example.eduorigin.RequestHandler;
+import com.example.eduorigin.adminpanel.AdminPanelBookUploadActivity;
 import com.example.eduorigin.controllers.ApiController;
 import com.example.eduorigin.models.ResponseModelRegistration;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -24,6 +35,7 @@ public class SignUpActivity extends AppCompatActivity {
      EditText nameRegister,emailRegister,passwordRegister;
      Button registerButton;
     // public static final String url="http://192.168.0.104/EduOriginAPI/Registration/register.php";
+    private String register_url = "https://timxn.com/ecom/EduOriginAPI/Registration/register.php";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,7 +51,8 @@ public class SignUpActivity extends AppCompatActivity {
         registerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                register_user(nameRegister.getText().toString().trim(),emailRegister.getText().toString().trim(),passwordRegister.getText().toString().trim());
+                // register_user(nameRegister.getText().toString().trim(),emailRegister.getText().toString().trim(),passwordRegister.getText().toString().trim());
+                register(nameRegister.getText().toString().trim(),emailRegister.getText().toString().trim(),passwordRegister.getText().toString().trim());
 
             }
         });
@@ -107,6 +120,65 @@ public class SignUpActivity extends AppCompatActivity {
 
 
 
+
+    }
+
+    private void register(final String name,final String email,final String password) {
+
+        //displayLoader();
+        Thread sendThread = new Thread() {
+
+            public void run() {
+
+                RequestHandler rh = new RequestHandler();
+                HashMap<String, String> param = new HashMap<String, String>();
+                //----------------------------------------------------------------
+
+
+                //Populate the request parameters
+                param.put("name", name);
+                param.put("email", email);
+                param.put("password", password);
+                String result=rh.sendPostRequest(register_url, param);
+                try {
+                    // Create a JSONObject from the JSON string
+                    JSONObject jsonObject = new JSONObject(result);
+
+                    // Extract the value associated with the key "message"
+                    String output = jsonObject.getString("message");
+
+                    // Print the value
+                    System.out.println("Message: " + output); // Output: Message: exist
+                    if(output.equals("inserted"))
+                    {
+
+                        runOnUiThread(() -> {
+
+                            // Stuff that updates the UI
+                            Toast.makeText(SignUpActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
+                        });
+                        startActivity(new Intent(getApplicationContext(), SignInActivity.class));
+                        finish();
+                    }
+                    if(output.equals("failed"))
+                        runOnUiThread(() -> {
+
+                            // Stuff that updates the UI
+                            Toast.makeText(SignUpActivity.this, "Registration failed", Toast.LENGTH_SHORT).show();
+                        });
+
+
+
+
+                } catch (JSONException e) {
+                    // Handle JSON parsing errors
+                    e.printStackTrace();
+                }
+                // pDialog.dismiss();
+
+            }
+        };
+        sendThread.start();
 
     }
 }
