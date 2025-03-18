@@ -136,7 +136,7 @@ public class OnlineQuizFragment extends Fragment {
                             String option_3 = item.getString("option_3");
                             String option_4 = item.getString("option_4");
                             String correct_answer = item.getString("correct_answer");*/
-
+                            Log.d("my_data",item.getString("id")+" "+item.getString("option_4")+" "+item.getString("correct_answer"));
                             ResponseModelQuiz model = new ResponseModelQuiz();
                             // Populate the model object with data from the JSON object
                             // Replace these with the actual column names from your database
@@ -151,9 +151,18 @@ public class OnlineQuizFragment extends Fragment {
                             dataList.add(model);
                         }
 
-                        // Update RecyclerView
-                        adapter = new QuizAdapter(dataList);
-                        recyclerView.setAdapter(adapter);
+                        getActivity().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                // Update UI here
+                                // For example, update a TextView or RecyclerView
+                                // Update the RecyclerView adapter on the main thread
+// Update RecyclerView
+                                adapter = new QuizAdapter(dataList);
+                                recyclerView.setAdapter(adapter);
+                            }
+                        });
+
 
                     } else {
                         Log.e("API Error", "Status is false");
