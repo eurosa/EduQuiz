@@ -104,46 +104,42 @@ public class AdminPanelBookUploadActivity extends AppCompatActivity {
 
 
         bottomNavigationView.setSelectedItemId(R.id.menu_bookUploadAdmin);
-        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            //Fragment store = null;
+        //Fragment store = null;
+        bottomNavigationView.setOnNavigationItemSelectedListener(item -> {
 
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-
-                switch (item.getItemId()) {
+            switch (item.getItemId()) {
 //                    case R.id.menu_bookUploadAdmin:
 //                        // store = new AdminBookUploadFragment();
 //                        //  getSupportFragmentManager().beginTransaction().replace(R.id.frameLayoutContainerId, store).commit();
 //                        break;
 
 
-                    case R.id.menu_quizCreationAdmin:
-                        // store = new AdminQuizCreationFragment();
-                        // getSupportFragmentManager().beginTransaction().replace(R.id.frameLayoutContainerId, store).commit();
+                case R.id.menu_quizCreationAdmin:
+                    // store = new AdminQuizCreationFragment();
+                    // getSupportFragmentManager().beginTransaction().replace(R.id.frameLayoutContainerId, store).commit();
 
-                        startActivity(new Intent(getApplicationContext(), AdminPanelCreateQuizActivity.class));
-                        break;
+                    startActivity(new Intent(getApplicationContext(), AdminPanelCreateQuizActivity.class));
+                    break;
 
-                    case R.id.menu_Logout_admin:
+                case R.id.menu_Logout_admin:
 
-                        SharedPreferences sp = getSharedPreferences("credential", MODE_PRIVATE);
-                        SharedPreferences.Editor editor = sp.edit();
-                        editor.remove("email");
-                        editor.remove("password");
-                        editor.commit();
-                        editor.apply();
+                    SharedPreferences sp = getSharedPreferences("credential", MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sp.edit();
+                    editor.remove("email");
+                    editor.remove("password");
+                    editor.commit();
+                    editor.apply();
 
-                        startActivity(new Intent(getApplicationContext(), SignInActivity.class));
-                        finish();
-                        break;
+                    startActivity(new Intent(getApplicationContext(), SignInActivity.class));
+                    finish();
+                    break;
 
-
-                }
-
-                // getSupportFragmentManager().beginTransaction().replace(R.id.frameLayoutContainerId,store).commit();
-                return true;
 
             }
+
+            // getSupportFragmentManager().beginTransaction().replace(R.id.frameLayoutContainerId,store).commit();
+            return true;
+
         });
 
 
