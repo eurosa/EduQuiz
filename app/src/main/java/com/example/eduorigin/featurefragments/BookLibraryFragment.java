@@ -55,8 +55,8 @@ public class BookLibraryFragment extends Fragment {
 
         recyclerView=view.findViewById(R.id.recyclerViewId);
         recyclerView.setLayoutManager(new GridLayoutManager(context,2));
-        processData();
-        //dataProcess();
+       // processData();
+        dataProcess();
 
         SearchView sv;
         sv=view.findViewById(R.id.searchViewId);
@@ -104,69 +104,69 @@ public class BookLibraryFragment extends Fragment {
         // Display a loader (if needed)
         // displayLoader();
 
-        Thread sendThread = new Thread(new Runnable() {
+        // Process the response on the main thread
+//   runOnUiThread(new Runnable() {
+//  });
+        Thread sendThread = new Thread(() -> {
+                try {
+                    // Create a RequestHandler instance
+                    RequestHandler rh = new RequestHandler();
 
+                    // Define the request parameters (if any)
+                    HashMap<String, String> param = new HashMap<>();
+                    // Example: param.put("key", "value");
 
+                    // Send the POST request and get the response
+                    String result = rh.sendPostRequest(read_url, param);
+                    Log.d("result123",result);
+                    // Create a JSONArray from the response string
+                    JSONArray jsonArray = new JSONArray(result);
 
-                // Process the response on the main thread
-             //   runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            // Create a RequestHandler instance
-                            RequestHandler rh = new RequestHandler();
+                    // Parse the JSON array into a list of ResponseModelBookLibraryBackup objects
+                    List<ResponseModelBookLibraryBackup> data = new ArrayList<>();
 
-                            // Define the request parameters (if any)
-                            HashMap<String, String> param = new HashMap<>();
-                            // Example: param.put("key", "value");
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject item = jsonArray.getJSONObject(i);
+                        ResponseModelBookLibraryBackup model = new ResponseModelBookLibraryBackup();
+                        // Create a new ResponseModelBookLibraryBackup object
+                        Log.d("result123",item.getString("id")+" "+item.getString("name")+" "+item.getString("description")+" "+item.getString("image")+" "+item.getString("pdf"));
 
-                            // Send the POST request and get the response
-                            String result = rh.sendPostRequest(read_url, param);
-                            Log.d("result123",result);
-                            // Create a JSONArray from the response string
-                            JSONArray jsonArray = new JSONArray(result);
-                            ResponseModelBookLibraryBackup model = new ResponseModelBookLibraryBackup();
-                            // Parse the JSON array into a list of ResponseModelBookLibraryBackup objects
-                            List<ResponseModelBookLibraryBackup> data = new ArrayList<>();
+                        // Populate the model object with data from the JSON object
+                        // Replace these with the actual column names from your database
+                        model.setId(item.getString("id")); // Assuming "id" is a column in your table
+                        model.setName(item.getString("name")); // Assuming "title" is a column in your table
+                        model.setDescription(item.getString("description")); // Assuming "description" is a column in your table
+                        model.setImage(item.getString("image")); // Assuming "image_url" is a column in your table
+                        model.setPdf(item.getString("pdf")); // Assuming "image_url" is a column in your table
 
-                            for (int i = 0; i < jsonArray.length(); i++) {
-                                JSONObject item = jsonArray.getJSONObject(i);
-
-                                // Create a new ResponseModelBookLibraryBackup object
-
-
-                                // Populate the model object with data from the JSON object
-                                // Replace these with the actual column names from your database
-                                model.setId(item.getString("id")); // Assuming "id" is a column in your table
-                                model.setName(item.getString("name")); // Assuming "title" is a column in your table
-                                model.setDescription(item.getString("description")); // Assuming "description" is a column in your table
-                                model.setImage(item.getString("image")); // Assuming "image_url" is a column in your table
-                                model.setPdf(item.getString("pdf")); // Assuming "image_url" is a column in your table
-
-                                // Add the model to the list
-                                data.add(model);
-                            }
-
+                        // Add the model to the list
+                        data.add(model);
+                    }
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            // Update UI here
+                            // For example, update a TextView or RecyclerView
                             // Update the RecyclerView adapter on the main thread
                             adapter = new BookLibraryAdapter(data);
                             recyclerView.setAdapter(adapter);
-
-                        } catch (JSONException e) {
-                            // Handle JSON parsing errors
-                            e.printStackTrace();
-                          //  Toast.makeText(context, "Error parsing response", Toast.LENGTH_SHORT).show();
-                        } catch (Exception e) {
-                            // Handle other errors
-                            e.printStackTrace();
-                          //  Toast.makeText(context, "An error occurred", Toast.LENGTH_SHORT).show();
-                        } finally {
-                            // Dismiss the loader (if used)
-                            // pDialog.dismiss();
                         }
-                    }
-              //  });
+                    });
 
-        });
+
+                } catch (JSONException e) {
+                    // Handle JSON parsing errors
+                    e.printStackTrace();
+                  //  Toast.makeText(context, "Error parsing response", Toast.LENGTH_SHORT).show();
+                } catch (Exception e) {
+                    // Handle other errors
+                    e.printStackTrace();
+                  //  Toast.makeText(context, "An error occurred", Toast.LENGTH_SHORT).show();
+                } finally {
+                    // Dismiss the loader (if used)
+                    // pDialog.dismiss();
+                }
+            });
 
         // Start the thread
         sendThread.start();
