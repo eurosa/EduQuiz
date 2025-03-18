@@ -7,11 +7,15 @@ import androidx.fragment.app.Fragment;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.RippleDrawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -23,7 +27,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.eduorigin.HttpRequest;
 import com.example.eduorigin.R;
+import com.example.eduorigin.adapters.BookLibraryAdapter;
 import com.example.eduorigin.controllers.ApiController;
 import com.example.eduorigin.models.ResponseModelQuiz;
 import com.example.eduorigin.registration.SignInActivity;
@@ -31,16 +37,25 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.http.Field;
 
 public class AdminPanelCreateQuizActivity extends AppCompatActivity {
-
-
+    private String admin_quiz_url = "https://timxn.com/ecom/EduOriginAPI/Registration/quiz.php";
+    private final int jsoncode = 1;
     private FrameLayout frameLayout;
     private BottomNavigationView bottomNavigationView;
-
+    private ExecutorService executor;
+    private  Handler handler ;
     private Button adminCreateQuizButton;
     private TextInputEditText adminCreateQuizTitleEditText,adminCreateQuizQuestionEditText,adminCreateQuizOption1EditText,adminCreateQuizOption2EditText,adminCreateQuizOption3EditText,adminCreateQuizOption4EditText,adminCreateQuizCorrectAnswerEditText;
 
@@ -52,6 +67,8 @@ public class AdminPanelCreateQuizActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_panel_create_quiz);
 
+        executor = Executors.newSingleThreadExecutor();
+        handler = new Handler(Looper.getMainLooper());
 
         adminCreateQuizTitleEditText=findViewById(R.id.adminCreateQuizTitleEditTextId);
         adminCreateQuizQuestionEditText=findViewById(R.id.adminCreateQuizQuestionEditTextId);
@@ -290,8 +307,8 @@ public class AdminPanelCreateQuizActivity extends AppCompatActivity {
                         && !correct_answer.isEmpty())
 
                 {
-
-                    Call<ResponseModelQuiz> call= ApiController.getInstance().getapi().createQuizFromAdmin(title,question,option_1,option_2,option_3,option_4,correct_answer);
+                    createQuiz(title,question,option_1,option_2,option_3,option_4,correct_answer);
+                    /*Call<ResponseModelQuiz> call= ApiController.getInstance().getapi().createQuizFromAdmin(title,question,option_1,option_2,option_3,option_4,correct_answer);
 
                     call.enqueue(new Callback<ResponseModelQuiz>() {
                         @Override
@@ -327,7 +344,7 @@ public class AdminPanelCreateQuizActivity extends AppCompatActivity {
                     });
 
 
-
+*/
                 }
                 else
                 Toast.makeText(AdminPanelCreateQuizActivity.this, "All fields must be filled", Toast.LENGTH_SHORT).show();
@@ -335,8 +352,117 @@ public class AdminPanelCreateQuizActivity extends AppCompatActivity {
             }
         });
     }
+    protected void createQuiz(String title,String question,String option_1,String option_2,String option_3,String option_4,String correct_answer) {
+        // Show progress bar if necessary
+        // progbar.setVisibility(View.VISIBLE);
+        // showSimpleProgressDialog(this, "Loading...", "Fetching Json", false);
+
+        executor.execute(() -> {
+            String response = "";
+            HashMap<String, String> map = new HashMap<>();
+
+            try {
+                HttpRequest req = new HttpRequest(admin_quiz_url);
+                // Populate the request parameters
+                map.put("title", title);
+                map.put("question", question);
+                map.put("option_1", option_1);
+                map.put("option_2", option_2);
+                map.put("option_3", option_3);
+                map.put("option_4", option_4);
+                map.put("correct_answer", correct_answer);
+
+                response = req.prepare(HttpRequest.Method.POST).withData(map).sendAndReadString();
+            } catch (Exception e) {
+                response = e.getMessage();
+            }
+
+            String finalResponse = response;
+            handler.post(() -> {
+                // Process response on the main thread
+                Log.d("response", finalResponse);
+
+                try {
+                    onTrainInfoTaskCompleted(finalResponse, jsoncode);
+                }catch(Exception ex){}
+            });
+        });
+    }
+
+    public void onTrainInfoTaskCompleted(String response, int serviceCode) {
+        Log.d("responsejson", response);
+        switch (serviceCode) {
+            case jsoncode:
+                if (isSuccess(response)) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+                    adminCreateQuizCorrectAnswerEditText.setFocusable(false);
+                    adminCreateQuizCorrectAnswerEditText.setFocusableInTouchMode(true);
+                    adminCreateQuizTitleEditText.setText("");
+                    adminCreateQuizQuestionEditText.setText("");
+                    adminCreateQuizOption1EditText.setText("");
+                    adminCreateQuizOption2EditText.setText("");
+                    adminCreateQuizOption3EditText.setText("");
+                    adminCreateQuizOption4EditText.setText("");
+                    adminCreateQuizCorrectAnswerEditText.setText("");
+                    Toast.makeText(AdminPanelCreateQuizActivity.this, "Question created successfully", Toast.LENGTH_SHORT).show();
+
+                        }
+                    });
+                    // Hide progress bar if necessary
+                    // progbar.setVisibility(View.GONE);
+
+                    //trainModelArrayList.clear();
+                    Resources res = getResources();
+                   // trainModelArrayList = getTrainInfo(response);
+
+                    // Update the adapter
+                   // DeviceAdapter adapter = new DeviceAdapter(this, R.layout.item, trainModelArrayList, res);
+                   // adapter.notifyDataSetChanged();
+                    //trainInfo.setAdapter(adapter);
+                }else{
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            // Update UI here
+                            // For example, update a TextView or RecyclerView
+                            // Update the RecyclerView adapter on the main thread
+                            adminCreateQuizCorrectAnswerEditText.setFocusable(false);
+                            adminCreateQuizCorrectAnswerEditText.setFocusableInTouchMode(true);
+                            adminCreateQuizTitleEditText.setText("");
+                            adminCreateQuizQuestionEditText.setText("");
+                            adminCreateQuizOption1EditText.setText("");
+                            adminCreateQuizOption2EditText.setText("");
+                            adminCreateQuizOption3EditText.setText("");
+                            adminCreateQuizOption4EditText.setText("");
+                            adminCreateQuizCorrectAnswerEditText.setText("");
+                            Toast.makeText(AdminPanelCreateQuizActivity.this, "Question creation failed", Toast.LENGTH_SHORT).show();
+                        }
+                    });
 
 
+                }
+        }
+    }
+    public boolean isSuccess(String response) {
+        Log.d("is_success",response);
+        try {
+            JSONObject jsonObject = new JSONObject(response);
+            if (jsonObject.optString("message").equals("inserted")) {
+                return true;
+            } else {
+
+                return false;
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 //    @Override
 //    protected void onResume() {
 //
