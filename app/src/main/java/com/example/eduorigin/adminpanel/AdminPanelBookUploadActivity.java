@@ -15,12 +15,15 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.OpenableColumns;
 import android.util.Base64;
 import android.util.Log;
@@ -33,6 +36,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.eduorigin.HttpRequest;
 import com.example.eduorigin.R;
 import com.example.eduorigin.RequestHandler;
 import com.example.eduorigin.controllers.ApiController;
@@ -54,6 +58,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -63,7 +69,9 @@ public class AdminPanelBookUploadActivity extends AppCompatActivity {
 
     private FrameLayout frameLayout;
     private BottomNavigationView bottomNavigationView;
-
+    private final int jsoncode = 1;
+    private ExecutorService executor;
+    private Handler handler ;
     private String sendBookUrl = "https://timxn.com/ecom/EduOriginAPI/Registration/uploadbooksbackup.php";
     private Button adminLogOut;
     private TextView adminResponseWarning;
@@ -89,7 +97,8 @@ public class AdminPanelBookUploadActivity extends AppCompatActivity {
 
         bottomNavigationView = findViewById(R.id.bottomNavigationId);
         //frameLayout = findViewById(R.id.frameLayoutContainerId);
-
+        executor = Executors.newSingleThreadExecutor();
+        handler = new Handler(Looper.getMainLooper());
 
         adminBookCategory=findViewById(R.id.adminBookCategoryId);
         adminBookName=findViewById(R.id.adminBookNameId);
@@ -286,13 +295,14 @@ public class AdminPanelBookUploadActivity extends AppCompatActivity {
 
                 try{
                     if(!adminBookDescription.getText().toString().isEmpty() && !adminBookName
-                            .getText().toString().isEmpty() && !encodeImageString.isEmpty() && !pdfNameExtract.isEmpty())
+                            .getText().toString().isEmpty() && !encodeImageString.isEmpty() && !pdfNameExtract.isEmpty()) {
                         uploadDataToDB();
+                        // uploadLibraryData();
 
-                    else
-                    Toast.makeText(AdminPanelBookUploadActivity.this, "All fields must be filled", Toast.LENGTH_SHORT).show();
+                    }else {
+                        Toast.makeText(AdminPanelBookUploadActivity.this, "All fields must be filled", Toast.LENGTH_SHORT).show();
 
-
+                    }
                 }catch (Exception e)
                 {
                     //Log.d("excep",e.toString());
@@ -516,11 +526,11 @@ public class AdminPanelBookUploadActivity extends AppCompatActivity {
                     JSONObject jsonObject = new JSONObject(result);
 
                     // Extract the value associated with the key "message"
-                    String output = jsonObject.getString("message");
+                    String output = jsonObject.getString("status");
 
                     // Print the value
                     System.out.println("Message: " + output); // Output: Message: exist
-                    if(output.equals("uploaded"))
+                    if(output.equals("true"))
                     {
 
                         runOnUiThread(() -> {
@@ -531,7 +541,7 @@ public class AdminPanelBookUploadActivity extends AppCompatActivity {
                         startActivity(new Intent(getApplicationContext(), SignInActivity.class));
                         finish();
                     }
-                    if(output.equals("failed"))
+                    if(output.equals("false"))
                         runOnUiThread(() -> {
 
                             // Stuff that updates the UI
@@ -551,6 +561,105 @@ public class AdminPanelBookUploadActivity extends AppCompatActivity {
         };
         sendThread.start();
 
+    }
+
+    protected void uploadLibraryData() {
+        // Show progress bar if necessary
+        // progbar.setVisibility(View.VISIBLE);
+        // showSimpleProgressDialog(this, "Loading...", "Fetching Json", false);
+
+        executor.execute(() -> {
+            String response = "";
+            HashMap<String, String> map = new HashMap<>();
+
+            try {
+                HttpRequest req = new HttpRequest(sendBookUrl);
+                // Populate the request parameters
+                String name=adminBookName.getText().toString().trim();
+                String description=adminBookDescription.getText().toString().trim();
+                String image=encodeImageString.trim();
+                String pdf=encodePdfString.trim();
+
+                //Populate the request parameters
+                map.put("name", name);
+                map.put("description", description);
+                map.put("image", image);
+                map.put("pdf", pdf);
+
+                response = req.prepare(HttpRequest.Method.POST).withData(map).sendAndReadString();
+            } catch (Exception e) {
+                response = e.getMessage();
+            }
+
+            String finalResponse = response;
+            handler.post(() -> {
+                // Process response on the main thread
+                Log.d("response", finalResponse);
+
+                try {
+                    onTrainInfoTaskCompleted(finalResponse, jsoncode);
+                }catch(Exception ex){}
+            });
+        });
+    }
+
+    public void onTrainInfoTaskCompleted(String response, int serviceCode) {
+        Log.d("responsejson", response);
+        switch (serviceCode) {
+            case jsoncode:
+                if (isSuccess(response)) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+
+
+                            Toast.makeText(AdminPanelBookUploadActivity.this, "Book uploaded successfully", Toast.LENGTH_SHORT).show();
+
+                        }
+                    });
+                    // Hide progress bar if necessary
+                    // progbar.setVisibility(View.GONE);
+
+                    //trainModelArrayList.clear();
+                    Resources res = getResources();
+                    // trainModelArrayList = getTrainInfo(response);
+
+                    // Update the adapter
+                    // DeviceAdapter adapter = new DeviceAdapter(this, R.layout.item, trainModelArrayList, res);
+                    // adapter.notifyDataSetChanged();
+                    //trainInfo.setAdapter(adapter);
+                }else{
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            // Update UI here
+                            // For example, update a TextView or RecyclerView
+                            // Update the RecyclerView adapter on the main thread
+
+                            Toast.makeText(AdminPanelBookUploadActivity.this, "Book upload failed", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+
+                }
+        }
+    }
+    public boolean isSuccess(String response) {
+        Log.d("is_success",response);
+        try {
+            JSONObject jsonObject = new JSONObject(response);
+            if (jsonObject.optString("status").equals("true")) {
+                return true;
+            } else {
+
+                return false;
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     private void openPdfPicker() {
