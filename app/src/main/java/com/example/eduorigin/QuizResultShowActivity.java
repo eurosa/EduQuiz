@@ -23,12 +23,18 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-
+import com.example.eduorigin.adapters.QuizAdapter;
 import com.example.eduorigin.controllers.ApiController;
 import com.example.eduorigin.featurefragments.OnlineQuizFragment;
 import com.example.eduorigin.models.ResponseModelQuiz;
 import com.example.eduorigin.models.ResponseModelQuizResult;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import retrofit2.Call;
@@ -37,7 +43,7 @@ import retrofit2.Response;
 
 public class QuizResultShowActivity extends AppCompatActivity {
 
-
+    private String send_quiz_result_url = "https://timxn.com/ecom/EduOriginAPI/Registration/quizresultsubmit.php";
     private TextView quizResultShowEmail,quizResultShowResult,quizResultShowVerdict,quizCorrectAnswerShow;
     private String verdict="";
     DrawerLayout drawerLayout;
@@ -226,9 +232,9 @@ public class QuizResultShowActivity extends AppCompatActivity {
         String email=sp.getString("email","");
 
         int spResult=sp.getInt(email,0);
-        Call<ResponseModelQuizResult> call= ApiController.getInstance().getapi().submitQuizResult(email,spResult,verdict);
-
-        call.enqueue(new Callback<ResponseModelQuizResult>() {
+       // Call<ResponseModelQuizResult> call= ApiController.getInstance().getapi().submitQuizResult(email,spResult,verdict);
+        sendQuizResultToDB(email,spResult,verdict);
+    /*    call.enqueue(new Callback<ResponseModelQuizResult>() {
             @Override
             public void onResponse(Call<ResponseModelQuizResult> call, Response<ResponseModelQuizResult> response) {
 
@@ -240,10 +246,109 @@ public class QuizResultShowActivity extends AppCompatActivity {
                 Toast.makeText(QuizResultShowActivity.this, "error", Toast.LENGTH_SHORT).show();
             }
         });
-
+*/
     }
 
+    private void sendQuizResultToDB(String email,int spResult,String verdict) {
 
+
+        //displayLoader();
+        Thread sendThread = new Thread() {
+
+            public void run() {
+
+                RequestHandler rh = new RequestHandler();
+                HashMap<String, String> param = new HashMap<String, String>();
+                //----------------------------------------------------------------
+
+
+                //Populate the request parameters
+                //Populate the request parameters
+                param.put("email", email);
+                param.put("result", String.valueOf(spResult));
+                param.put("verdict", verdict);
+                String result=rh.sendPostRequest(send_quiz_result_url, param);
+                // Assuming 'result' is the JSON response string
+                try {
+                    JSONObject jsonResponse = new JSONObject(result);
+                    // boolean status = jsonResponse.getBoolean("message");
+
+                    if (jsonResponse.optString("message").equals("inserted")) {
+
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                // Update UI here
+                                Toast.makeText(QuizResultShowActivity.this, "Inserted successfully", Toast.LENGTH_SHORT).show();
+                                // For example, update a TextView or RecyclerView
+                                // Update the RecyclerView adapter on the main thread
+// Update RecyclerView
+                            }
+                        });
+
+
+                    }else if(jsonResponse.optString("message").equals("updated")) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                // Update UI here
+                                Toast.makeText(QuizResultShowActivity.this, "Updated successfully", Toast.LENGTH_SHORT).show();
+                                // For example, update a TextView or RecyclerView
+                                // Update the RecyclerView adapter on the main thread
+// Update RecyclerView
+                            }
+                        });
+                    }else if(jsonResponse.optString("message").equals("failed")) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                // Update UI here
+                                Toast.makeText(QuizResultShowActivity.this, "Failed Error", Toast.LENGTH_SHORT).show();
+                                // For example, update a TextView or RecyclerView
+                                // Update the RecyclerView adapter on the main thread
+// Update RecyclerView
+                            }
+                        });
+                    } else {
+                        Log.e("API Error", "Status is false");
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                // Update UI here
+                                Toast.makeText(QuizResultShowActivity.this, "API Error", Toast.LENGTH_SHORT).show();
+                                // For example, update a TextView or RecyclerView
+                                // Update the RecyclerView adapter on the main thread
+// Update RecyclerView
+                            }
+                        });
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    Log.e("JSON Parsing Error", e.getMessage());
+                }
+                // pDialog.dismiss();
+
+            }
+        };
+        sendThread.start();
+
+    }
+    public boolean isSuccess(String response) {
+        Log.d("is_success",response);
+        try {
+            JSONObject jsonObject = new JSONObject(response);
+            if (jsonObject.optString("status").equals("true")) {
+                return true;
+            } else {
+
+                return false;
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
 
     @Override
