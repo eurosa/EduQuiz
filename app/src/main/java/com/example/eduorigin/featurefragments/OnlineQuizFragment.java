@@ -1,6 +1,7 @@
 package com.example.eduorigin.featurefragments;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 
@@ -8,6 +9,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,13 +21,22 @@ import android.widget.Toast;
 
 import com.example.eduorigin.QuizResultShowActivity;
 import com.example.eduorigin.R;
+import com.example.eduorigin.RequestHandler;
 import com.example.eduorigin.adapters.BookLibraryAdapter;
 import com.example.eduorigin.adapters.QuizAdapter;
+import com.example.eduorigin.adminpanel.AdminPanelBookUploadActivity;
 import com.example.eduorigin.controllers.ApiController;
 import com.example.eduorigin.models.ResponseModelBookLibraryBackup;
 import com.example.eduorigin.models.ResponseModelQuiz;
 import com.example.eduorigin.models.ResponseModelQuizResult;
+import com.example.eduorigin.registration.SignInActivity;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import retrofit2.Call;
@@ -37,7 +48,7 @@ public class OnlineQuizFragment extends Fragment {
     private RecyclerView recyclerView;
     private QuizAdapter adapter;
     Context context;
-
+    private String read_quiz_url = "https://timxn.com/ecom/EduOriginAPI/Registration/readquiz.php";
     public OnlineQuizFragment() {
         // Required empty public constructor
     }
@@ -60,8 +71,8 @@ public class OnlineQuizFragment extends Fragment {
 
         recyclerView=view.findViewById(R.id.quizRecyclerViewId);
         recyclerView.setLayoutManager(new LinearLayoutManager(context));
-        processQuizData();
-
+        //processQuizData();
+        getQuizData();
 
         return view;
     }
@@ -87,5 +98,91 @@ public class OnlineQuizFragment extends Fragment {
                 //Toast.makeText(, "", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void getQuizData() {
+
+
+        //displayLoader();
+        Thread sendThread = new Thread() {
+
+            public void run() {
+
+                RequestHandler rh = new RequestHandler();
+                HashMap<String, String> param = new HashMap<String, String>();
+                //----------------------------------------------------------------
+
+
+                //Populate the request parameters
+
+                String result=rh.sendPostRequest(read_quiz_url, param);
+                // Assuming 'result' is the JSON response string
+                try {
+                    JSONObject jsonResponse = new JSONObject(result);
+                   // boolean status = jsonResponse.getBoolean("status");
+
+                    if (isSuccess(result)) {
+                        JSONArray dataArray = jsonResponse.getJSONArray("data");
+                        List<ResponseModelQuiz> dataList = new ArrayList<>();
+
+                        for (int i = 0; i < dataArray.length(); i++) {
+                            JSONObject item = dataArray.getJSONObject(i);
+
+                            /*String id = item.getString("id");
+                            String title = item.getString("title");
+                            String question = item.getString("question");
+                            String option_1 = item.getString("option_1");
+                            String option_2 = item.getString("option_2");
+                            String option_3 = item.getString("option_3");
+                            String option_4 = item.getString("option_4");
+                            String correct_answer = item.getString("correct_answer");*/
+
+                            ResponseModelQuiz model = new ResponseModelQuiz();
+                            // Populate the model object with data from the JSON object
+                            // Replace these with the actual column names from your database
+                            model.setId(item.getString("id")); // Assuming "id" is a column in your table
+                            model.setTitle(item.getString("title")); // Assuming "title" is a column in your table
+                            model.setQuestion(item.getString("question")); // Assuming "title" is a column in your table
+                            model.setOption_1(item.getString("option_1")); // Assuming "description" is a column in your table
+                            model.setOption_2(item.getString("option_2")); // Assuming "image_url" is a column in your table
+                            model.setOption_3(item.getString("option_3")); // Assuming "image_url" is a column in your table
+                            model.setOption_4(item.getString("option_4")); // Assuming "image_url" is a column in your table
+                            model.setCorrect_answer(item.getString("correct_answer")); // Assuming "image_url" is a column in your table
+                            dataList.add(model);
+                        }
+
+                        // Update RecyclerView
+                        adapter = new QuizAdapter(dataList);
+                        recyclerView.setAdapter(adapter);
+
+                    } else {
+                        Log.e("API Error", "Status is false");
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    Log.e("JSON Parsing Error", e.getMessage());
+                }
+                // pDialog.dismiss();
+
+            }
+        };
+        sendThread.start();
+
+    }
+    public boolean isSuccess(String response) {
+        Log.d("is_success",response);
+        try {
+            JSONObject jsonObject = new JSONObject(response);
+            if (jsonObject.optString("status").equals("true")) {
+                return true;
+            } else {
+
+                return false;
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }
