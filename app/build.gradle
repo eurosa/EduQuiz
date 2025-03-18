@@ -20,7 +20,7 @@ android {
             abortOnError false
         }
         // Add this line
-        namespace "com.example.eduorigin"
+        namespace "com.xlibrarykr.eduorigin"
 
     }
     buildTypes {
@@ -29,7 +29,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    namespace 'com.example.eduorigin'
+    namespace 'com.xlibrarykr.eduorigin'
 
     allprojects {
 
