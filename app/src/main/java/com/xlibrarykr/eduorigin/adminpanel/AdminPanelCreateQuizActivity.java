@@ -22,6 +22,7 @@ import android.widget.Toast;
 
 import com.xlibrarykr.eduorigin.HttpRequest;
 import com.xlibrarykr.eduorigin.R;
+import com.xlibrarykr.eduorigin.RequestHandler;
 import com.xlibrarykr.eduorigin.registration.SignInActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.textfield.TextInputEditText;
@@ -291,7 +292,8 @@ public class AdminPanelCreateQuizActivity extends AppCompatActivity {
                         && !correct_answer.isEmpty())
 
                 {
-                    createQuiz(title,question,option_1,option_2,option_3,option_4,correct_answer);
+                    // createQuiz(title,question,option_1,option_2,option_3,option_4,correct_answer);
+                    uploadDataToDB(title,question,option_1,option_2,option_3,option_4,correct_answer);
                     /*Call<ResponseModelQuiz> call= ApiController.getInstance().getapi().createQuizFromAdmin(title,question,option_1,option_2,option_3,option_4,correct_answer);
 
                     call.enqueue(new Callback<ResponseModelQuiz>() {
@@ -399,7 +401,7 @@ public class AdminPanelCreateQuizActivity extends AppCompatActivity {
                     // progbar.setVisibility(View.GONE);
 
                     //trainModelArrayList.clear();
-                    Resources res = getResources();
+                  //  Resources res = getResources();
                    // trainModelArrayList = getTrainInfo(response);
 
                     // Update the adapter
@@ -446,6 +448,89 @@ public class AdminPanelCreateQuizActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         return false;
+    }
+
+
+    private void uploadDataToDB(String title,String question,String option_1,String option_2,String option_3,String option_4,String correct_answer) {
+
+
+        //displayLoader();
+        Thread sendThread = new Thread() {
+            RequestHandler rh = new RequestHandler();
+            HashMap<String, String> param = new HashMap<String, String>();
+            public void run() {
+
+
+                //----------------------------------------------------------------
+
+
+                //Populate the request parameters
+                param.put("title", title);
+                param.put("question", question);
+                param.put("option_1", option_1);
+                param.put("option_2", option_2);
+                param.put("option_3", option_3);
+                param.put("option_4", option_4);
+                param.put("correct_answer", correct_answer);
+                String result=rh.sendPostRequest(admin_quiz_url, param);
+                try {
+                    // Create a JSONObject from the JSON string
+                    JSONObject jsonObject = new JSONObject(result);
+
+                    // Extract the value associated with the key "message"
+                    String output = jsonObject.getString("message");
+
+                    // Print the value
+                    System.out.println("Message: " + output); // Output: Message: exist
+                    if(output.equals("inserted"))
+                    {
+
+                        runOnUiThread(() -> {
+
+                            // Stuff that updates the UI
+                            adminCreateQuizCorrectAnswerEditText.setFocusable(false);
+                            adminCreateQuizCorrectAnswerEditText.setFocusableInTouchMode(true);
+                            adminCreateQuizTitleEditText.setText("");
+                            adminCreateQuizQuestionEditText.setText("");
+                            adminCreateQuizOption1EditText.setText("");
+                            adminCreateQuizOption2EditText.setText("");
+                            adminCreateQuizOption3EditText.setText("");
+                            adminCreateQuizOption4EditText.setText("");
+                            adminCreateQuizCorrectAnswerEditText.setText("");
+                            Toast.makeText(AdminPanelCreateQuizActivity.this, "Quiz inserted successfully", Toast.LENGTH_SHORT).show();
+                        });
+                        startActivity(new Intent(getApplicationContext(), SignInActivity.class));
+                        finish();
+                    }
+                    if(output.equals("failed"))
+                        runOnUiThread(() -> {
+
+                            // Stuff that updates the UI
+                            adminCreateQuizCorrectAnswerEditText.setFocusable(false);
+                            adminCreateQuizCorrectAnswerEditText.setFocusableInTouchMode(true);
+                            adminCreateQuizTitleEditText.setText("");
+                            adminCreateQuizQuestionEditText.setText("");
+                            adminCreateQuizOption1EditText.setText("");
+                            adminCreateQuizOption2EditText.setText("");
+                            adminCreateQuizOption3EditText.setText("");
+                            adminCreateQuizOption4EditText.setText("");
+                            adminCreateQuizCorrectAnswerEditText.setText("");
+                            Toast.makeText(AdminPanelCreateQuizActivity.this, "Quiz inserting failed", Toast.LENGTH_SHORT).show();
+                        });
+
+
+
+
+                } catch (JSONException e) {
+                    // Handle JSON parsing errors
+                    e.printStackTrace();
+                }
+                // pDialog.dismiss();
+
+            }
+        };
+        sendThread.start();
+
     }
 //    @Override
 //    protected void onResume() {
