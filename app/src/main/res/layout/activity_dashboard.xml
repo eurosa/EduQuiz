@@ -20,7 +20,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             android:id="@+id/toolBarId"
-            app:title="EduOrigin"
+            app:title="EduLibrary"
             app:titleTextColor="#EBE6E6"
             android:background="#FF9800"
 
@@ -37,6 +37,18 @@
             app:layout_constraintTop_toBottomOf="@+id/toolBarId">
 
         </FrameLayout>
+        <!-- Ad view container that fills the width of the screen and adjusts its
+     height to the content of the ad. -->
+        <FrameLayout
+            android:id="@+id/ad_view_container"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:layout_centerInParent="true"
+            android:layout_alignParentBottom="true"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

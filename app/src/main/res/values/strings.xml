@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">EduOrigin</string>
+    <string name="app_name">EduLibrary</string>
 
     <string name="open">Drawer Opened</string>
     <string name="close">Drawer Closed</string>

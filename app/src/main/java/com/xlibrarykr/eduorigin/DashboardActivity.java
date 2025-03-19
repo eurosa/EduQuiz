@@ -13,8 +13,13 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdSize;
+import com.google.android.gms.ads.AdView;
+import com.google.android.gms.ads.MobileAds;
 import com.xlibrarykr.eduorigin.featurefragments.BookLibraryFragment;
 import com.xlibrarykr.eduorigin.featurefragments.OnlineQuizFragment;
 import com.xlibrarykr.eduorigin.learningresourcefragments.GeeksForGeeksFragment;
@@ -34,19 +39,46 @@ public class DashboardActivity extends AppCompatActivity {
     private TextView navHeaderEmail;
     private String output;
     private View headerView;
+    private AdView adView;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
         SharedPreferences sp=getSharedPreferences("credential",MODE_PRIVATE);
         String output=sp.getString("email","");
+        FrameLayout adContainerView = findViewById(R.id.ad_view_container);
+
 
         navigationView2 = (NavigationView) findViewById(R.id.navigationViewId );
         headerView = navigationView2.getHeaderView(0);
         navHeaderEmail = (TextView) headerView.findViewById(R.id.navHeaderEmailId);
         navHeaderEmail.setText(output);
 
-        //userExistenceCheck();
+        // Create a new ad view.
+        adView = new AdView(this);
+        adView.setAdUnitId("ca-app-pub-3940256099942544/9214589741");
+       // Request an anchored adaptive banner with a width of 360.
+        adView.setAdSize(AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, 360));
+        adContainerView.removeAllViews();
+        adContainerView.addView(adView);
+       // Replace ad container with new ad view.
+        //adContainerView.removeAllViews();
+       // adContainerView.addView(adView);
+        // Request an anchored adaptive banner with a width of 360.
+
+        new Thread(
+                () -> {
+                    // Initialize the Google Mobile Ads SDK on a background thread.
+                    MobileAds.initialize(this, initializationStatus -> {});
+                })
+                .start();
+
+
+        AdRequest adRequest = new AdRequest.Builder().build();
+        adView.loadAd(adRequest);
+
+        // userExistenceCheck();
 
 
 
