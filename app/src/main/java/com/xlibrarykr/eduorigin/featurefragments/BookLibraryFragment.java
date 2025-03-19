@@ -59,8 +59,8 @@ public class BookLibraryFragment extends Fragment {
         handler = new Handler(Looper.getMainLooper());
         recyclerView=view.findViewById(R.id.recyclerViewId);
         recyclerView.setLayoutManager(new GridLayoutManager(context,2));
-       // processData();
-      //  dataProcess();
+        // processData();
+        // dataProcess();
        getLibraryData();
         SearchView sv;
         sv=view.findViewById(R.id.searchViewId);

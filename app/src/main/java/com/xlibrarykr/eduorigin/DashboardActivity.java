@@ -57,7 +57,8 @@ public class DashboardActivity extends AppCompatActivity {
 
         // Create a new ad view.
         adView = new AdView(this);
-        adView.setAdUnitId("ca-app-pub-3940256099942544/9214589741");
+      //  adView.setAdUnitId("ca-app-pub-3940256099942544/9214589741");// test unit id
+        adView.setAdUnitId("ca-app-pub-8127887406337874/9794083203");
        // Request an anchored adaptive banner with a width of 360.
         adView.setAdSize(AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(this, 360));
         adContainerView.removeAllViews();
