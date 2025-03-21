@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Library</string>
+    <string name="app_name">X Library</string>
 
     <string name="open">Drawer Opened</string>
     <string name="close">Drawer Closed</string>
