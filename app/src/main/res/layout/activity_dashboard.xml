@@ -20,7 +20,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             android:id="@+id/toolBarId"
-            app:title="ELibrary"
+            app:title="X Library"
             app:titleTextColor="#EBE6E6"
             android:background="#FF9800"
 
